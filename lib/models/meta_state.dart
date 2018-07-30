@@ -1,0 +1,1 @@
+enum MetaState { YES, NO, UNKNOWN }

@@ -11,7 +11,6 @@ Future<List<Toilet>> fetchOsloToilets() async {
     var jsonToilets = json.decode(res.body)['features'];
     List<Toilet> toilets = [];
     for (var toilet in jsonToilets) {
-      print(toilet);
       toilets.add(Toilet.fromBymJson(toilet));
     }
     return toilets;

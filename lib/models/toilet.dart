@@ -1,7 +1,7 @@
 import 'package:dokart/models/meta_state.dart';
 
 class Toilet {
-  // Dynamic because Oslo toilets gets parsed to double, whilst Oslo/Stvg is string, so we need to make it flexible.
+  // Dynamic because Oslo/Firestore toilets gets parsed to double, whilst Oslo/Stvg is string, so we need to make it flexible.
   final dynamic longitude;
   final dynamic latitude;
   final String pris;

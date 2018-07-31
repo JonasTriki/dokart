@@ -1,5 +1,6 @@
 import 'package:dokart/data/toilets/actions.dart';
 import 'package:dokart/data/toilets/cities/bergen.dart';
+import 'package:dokart/data/toilets/cities/firestore_cities.dart';
 import 'package:dokart/data/toilets/cities/oslo.dart';
 import 'package:dokart/data/toilets/cities/stavanger.dart';
 import 'package:dokart/models/app_state.dart';
@@ -28,12 +29,15 @@ Middleware<AppState> _createLoadToiletsMiddleware() {
         final List<Toilet> osloToilets = await fetchOsloToilets();
         print("Fetched " + osloToilets.length.toString() + " toilets!");
 
-        // TODO: Add trondheim and others from cloud firestore...
+        print("Fetching toilets from Cloud Firestore...");
+        final List<Toilet> firestoreToilets = await fetchFirestoreToilets();
+        print("Fetched " + firestoreToilets.length.toString() + " toilets!");
 
         store.dispatch(LoadToiletsSuccessful(
             toilets: bergenToilets
               ..addAll(stavangerToilets)
-              ..addAll(osloToilets)));
+              ..addAll(osloToilets)
+              ..addAll(firestoreToilets)));
       } catch (error) {
         store.dispatch(LoadToiletsError(error));
       }

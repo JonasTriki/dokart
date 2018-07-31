@@ -16,6 +16,7 @@ Map<String, WidgetBuilder> getRoutes() => {
               if (store.state.toilets.isNotEmpty) {
                 print("Toilets loaded!");
                 print(store.state.toilets);
+                Navigator.of(context).pushReplacementNamed("/toilets");
               }
             },
             builder: (BuildContext context, Store vm) => Splash());

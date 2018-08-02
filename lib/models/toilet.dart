@@ -1,4 +1,6 @@
 import 'package:dokart/models/meta_state.dart';
+import 'package:flutter/widgets.dart';
+import 'package:latlong/latlong.dart';
 
 class Toilet {
   // Dynamic because Oslo/Firestore toilets gets parsed to double, whilst Oslo/Stvg is string, so we need to make it flexible.
@@ -13,6 +15,7 @@ class Toilet {
   final String rullestol;
   final String stellerom;
   final String pissoir;
+  final GlobalKey key = GlobalKey();
 
   Toilet(
       {this.longitude,
@@ -27,6 +30,8 @@ class Toilet {
       this.rullestol,
       this.stellerom});
 
+  LatLng get getLatLng => LatLng(getLatitude, getLongitude);
+
   double get getLongitude =>
       longitude is double ? longitude : double.tryParse(longitude) ?? 0.0;
 
@@ -35,7 +40,12 @@ class Toilet {
 
   int get getPris => pris == "Ja" ? -1 : int.tryParse(pris) ?? 0;
 
-  String get getPlassering => plassering.replaceAll(" , ", ", ");
+  String get getPlassering {
+    if (plassering == null) {
+      print(this);
+    }
+    return plassering.replaceAll(" , ", ", ");
+  }
 
   String get getAdresse => adresse;
 
@@ -104,8 +114,8 @@ class Toilet {
         latitude: geometry['y'],
         longitude: geometry['x'],
         pris: attributes['Betaling'],
-        plassering: json['Navn'],
-        adresse: json['Sted'],
+        plassering: attributes['Navn'],
+        adresse: attributes['Sted'],
         tid_hverdag: getApningstid(),
         tid_lordag: getApningstid(),
         tid_sondag: getApningstid(),

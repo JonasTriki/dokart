@@ -3,11 +3,11 @@ import 'dart:math';
 import 'package:dokart/mapbox_token.dart';
 import 'package:dokart/models/app_state.dart';
 import 'package:dokart/models/toilet.dart';
+import 'package:dokart/screens/toilets/widgets/toilet_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:latlong/latlong.dart';
-import 'package:location/location.dart';
 import 'package:redux/redux.dart';
 
 class Toilets extends StatefulWidget {
@@ -17,39 +17,34 @@ class Toilets extends StatefulWidget {
 
 class _ToiletsState extends State<Toilets> {
   MapController mapController;
-  LatLng currentLocation;
+  bool _toggleStickToLocation;
 
   @override
   void initState() {
     mapController = MapController();
-    Location().onLocationChanged.listen((Map<String, double> data) {
-      print("New location");
-      print(currentLocation);
-      setState(() {
-        currentLocation = LatLng(data["latitude"], data["longitude"]);
-      });
-    });
+    _toggleStickToLocation = false;
     super.initState();
   }
 
-  Marker _myLocation() => Marker(
+  _moveToLocation(LatLng location) {
+    mapController.move(location, max(mapController.zoom, 16.0));
+  }
+
+  Marker _myLocation(LatLng currentLocation) => Marker(
         point: currentLocation,
         builder: (ctx) => Container(
               decoration: BoxDecoration(boxShadow: [
                 BoxShadow(
-                    color: const Color(0x77000000),
+                    color: const Color(0xffffffff),
                     spreadRadius: -5.0,
                     blurRadius: 5.0)
               ]),
               child: GestureDetector(
                 onTap: () {
-                  mapController.move(
-                      currentLocation, max(mapController.zoom, 16.0));
+                  _moveToLocation(currentLocation);
                 },
-                child: Image.asset(
-                  "assets/circle.png",
-                  color: Colors.red,
-                ),
+                child: const Icon(const IconData(0xf00c, fontFamily: "mdi"),
+                    color: Color(0xff2196f3)),
               ),
             ),
       );
@@ -78,8 +73,8 @@ class _ToiletsState extends State<Toilets> {
           ))
       .toList();
 
-  Widget _drawMap(BuildContext context, List<Toilet> toilets) {
-    if (currentLocation == null) {
+  Widget _drawMap(BuildContext context, AppState state) {
+    if (state.location == null) {
       return Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
@@ -98,7 +93,7 @@ class _ToiletsState extends State<Toilets> {
     }
     return FlutterMap(
       mapController: mapController,
-      options: MapOptions(center: currentLocation, zoom: 16.0),
+      options: MapOptions(center: state.location, zoom: 16.0),
       layers: [
         TileLayerOptions(
           urlTemplate: "https://api.tiles.mapbox.com/v4/"
@@ -109,7 +104,8 @@ class _ToiletsState extends State<Toilets> {
           },
         ),
         MarkerLayerOptions(
-          markers: [_myLocation()]..addAll(_toiletMarkers(toilets)),
+          markers: [_myLocation(state.location)]
+            ..addAll(_toiletMarkers(state.toilets)),
         ),
       ],
     );
@@ -120,63 +116,101 @@ class _ToiletsState extends State<Toilets> {
         children: toilets
             .map((toilet) => Padding(
                   padding: const EdgeInsets.all(4.0),
-                  child: Card(
-                    elevation: 2.0,
-                    child: InkWell(
-                      onTap: () {
-                        goToToilet(toilet);
-                      },
-                      child: Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: <Widget>[
-                            Text(
-                              toilet.getPlassering,
-                              style: Theme
-                                  .of(context)
-                                  .textTheme
-                                  .title
-                                  .copyWith(fontWeight: FontWeight.bold),
-                            ),
-                            Text(toilet.getAdresse)
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
+                  child: toiletCard(context, toilet, () {
+                    print(toilet);
+                    goToToilet(toilet);
+                  }),
                 ))
             .toList(),
       );
 
   List<Widget> _content(Store<AppState> store) => [
-        Expanded(child: _drawMap(context, store.state.toilets)),
+        Expanded(child: _drawMap(context, store.state)),
         Expanded(child: _drawToiletList(context, store.state.toilets))
       ];
+
+  BottomAppBar _bottomAppBar() => BottomAppBar(
+        hasNotch: false,
+        child: StoreBuilder<AppState>(
+          builder: (BuildContext context, store) {
+            return Row(
+              mainAxisSize: MainAxisSize.max,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: <Widget>[
+                IconButton(
+                  icon: Icon(Icons.menu),
+                  onPressed: () {
+                    showModalBottomSheet<void>(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return new Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: <Widget>[
+                              new ListTile(
+                                leading: new Icon(Icons.music_note),
+                                title: new Text('Music'),
+                                onTap: () {},
+                              ),
+                              new ListTile(
+                                leading: new Icon(Icons.photo_album),
+                                title: new Text('Photos'),
+                                onTap: () {},
+                              ),
+                              new ListTile(
+                                leading: new Icon(Icons.videocam),
+                                title: new Text('Video'),
+                                onTap: () {},
+                              ),
+                            ],
+                          );
+                        });
+                  },
+                ),
+                IconButton(
+                  icon: Icon(
+                    IconData(0xf1a4, fontFamily: "mdi"),
+                    color: _toggleStickToLocation
+                        ? Color(0xff2097f3)
+                        : Theme.of(context).iconTheme.color,
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      _toggleStickToLocation = !_toggleStickToLocation;
+                      if (_toggleStickToLocation) {
+                        _moveToLocation(store.state.location);
+                      }
+                    });
+                  },
+                ),
+              ],
+            );
+          },
+        ),
+      );
 
   @override
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
-        backgroundColor: Colors.white,
+        backgroundColor: Color(0xfff6f7fa),
         body: StoreBuilder<AppState>(builder: (BuildContext context, store) {
           final Orientation orientation = MediaQuery.of(context).orientation;
           return orientation == Orientation.portrait
               ? Column(children: _content(store))
               : Row(children: _content(store));
+        }, onDidChange: (Store<AppState> store) {
+          if (_toggleStickToLocation) {
+            _moveToLocation(store.state.location);
+          }
         }),
-        bottomNavigationBar: BottomAppBar(
-          child: Row(
-            mainAxisSize: MainAxisSize.max,
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: <Widget>[
-              IconButton(
-                icon: Icon(Icons.menu),
-                onPressed: () {},
-              ),
-            ],
-          ),
+        floatingActionButton: FloatingActionButton.extended(
+          elevation: 4.0,
+          icon: const Icon(const IconData(0xf5cd, fontFamily: "mdi")),
+          label: const Text("Nærmeste toalett"),
+          onPressed: () {},
         ),
+        floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+        bottomNavigationBar: _bottomAppBar(),
       ),
     );
   }

@@ -1,3 +1,4 @@
+import 'package:dokart/data/location/actions.dart';
 import 'package:dokart/data/toilets/actions.dart';
 import 'package:dokart/models/app_state.dart';
 import 'package:dokart/screens/splash/index.dart';
@@ -14,8 +15,7 @@ Map<String, WidgetBuilder> getRoutes() => {
             },
             onWillChange: (store) {
               if (store.state.toilets.isNotEmpty) {
-                print("Toilets loaded!");
-                print(store.state.toilets);
+                store.dispatch(GetLocation());
                 Navigator.of(context).pushReplacementNamed("/toilets");
               }
             },

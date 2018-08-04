@@ -9,13 +9,14 @@ class Toilet {
   final String pris;
   final String plassering;
   final String adresse;
-  final String tid_hverdag;
-  final String tid_lordag;
-  final String tid_sondag;
+  final String tidHverdag;
+  final String tidLordag;
+  final String tidSondag;
   final String rullestol;
   final String stellerom;
   final String pissoir;
   final GlobalKey key = GlobalKey();
+  num distance;
 
   Toilet(
       {this.longitude,
@@ -23,12 +24,13 @@ class Toilet {
       this.pris,
       this.plassering,
       this.adresse,
-      this.tid_hverdag,
-      this.tid_lordag,
-      this.tid_sondag,
+      this.tidHverdag,
+      this.tidLordag,
+      this.tidSondag,
       this.pissoir,
       this.rullestol,
-      this.stellerom});
+      this.stellerom,
+      this.distance});
 
   LatLng get getLatLng => LatLng(getLatitude, getLongitude);
 
@@ -60,11 +62,11 @@ class Toilet {
     }
   }
 
-  String get getTidHverdag => _fixToiletTime(tid_hverdag);
+  String get getTidHverdag => _fixToiletTime(tidHverdag);
 
-  String get getTidLordag => _fixToiletTime(tid_lordag);
+  String get getTidLordag => _fixToiletTime(tidLordag);
 
-  String get getTidSondag => _fixToiletTime(tid_sondag);
+  String get getTidSondag => _fixToiletTime(tidSondag);
 
   MetaState get isRullestol => rullestol == "-1"
       ? MetaState.UNKNOWN
@@ -78,6 +80,18 @@ class Toilet {
       ? MetaState.UNKNOWN
       : pissoir == "1" ? MetaState.YES : MetaState.NO;
 
+  String get getDistance {
+    if (distance == null) {
+      return "Laster...";
+    } else if (distance.toInt() > 999) {
+      return (distance / 1000).toStringAsFixed(2) + " km";
+    } else {
+      return distance.toInt().toString() + " meter";
+    }
+  }
+
+  set setDistance(num distance) => this.distance = distance;
+
   factory Toilet.fromJson(Map<String, dynamic> json) {
     return Toilet(
         latitude: json['latitude'],
@@ -85,9 +99,9 @@ class Toilet {
         pris: json['pris'],
         plassering: json['plassering'],
         adresse: json['adresse'],
-        tid_hverdag: json['tid_hverdag'] ?? json['aapningstider_hverdag'],
-        tid_lordag: json['tid_lordag'] ?? json['aapningstider_loerdag'],
-        tid_sondag: json['tid_sondag'] ?? json['aapningstider_soendag'],
+        tidHverdag: json['tid_hverdag'] ?? json['aapningstider_hverdag'],
+        tidLordag: json['tid_lordag'] ?? json['aapningstider_loerdag'],
+        tidSondag: json['tid_sondag'] ?? json['aapningstider_soendag'],
         pissoir: json['pissoir_only'] ?? json['pissoir'],
         rullestol: json['rullestol'],
         stellerom: json['stellerom']);
@@ -116,9 +130,9 @@ class Toilet {
         pris: attributes['Betaling'],
         plassering: attributes['Navn'],
         adresse: attributes['Sted'],
-        tid_hverdag: getApningstid(),
-        tid_lordag: getApningstid(),
-        tid_sondag: getApningstid(),
+        tidHverdag: getApningstid(),
+        tidLordag: getApningstid(),
+        tidSondag: getApningstid(),
         pissoir: "-1",
         rullestol: attributes['Type'] == "UU Toalett" ? "1" : "0",
         stellerom: "-1");
@@ -126,6 +140,6 @@ class Toilet {
 
   @override
   String toString() {
-    return 'Toilet{longitude: $longitude, latitude: $latitude, pris: $pris, plassering: $plassering, adresse: $adresse, tid_hverdag: $tid_hverdag, tid_lordag: $tid_lordag, tid_sondag: $tid_sondag, rullestol: $isRullestol, stellerom: $isStellerom, pissoir: $isPissoir}';
+    return 'Toilet{longitude: $longitude, latitude: $latitude, pris: $pris, plassering: $plassering, adresse: $adresse, tid_hverdag: $tidHverdag, tid_lordag: $tidLordag, tid_sondag: $tidSondag, rullestol: $isRullestol, stellerom: $isStellerom, pissoir: $isPissoir}';
   }
 }

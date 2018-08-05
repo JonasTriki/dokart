@@ -4,6 +4,7 @@ import 'package:dokart/mapbox_token.dart';
 import 'package:dokart/models/app_state.dart';
 import 'package:dokart/models/toilet.dart';
 import 'package:dokart/screens/toilets/widgets/toilet_card.dart';
+import 'package:dokart/utils/maps.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_redux/flutter_redux.dart';
@@ -143,6 +144,17 @@ class _ToiletsState extends State<Toilets> {
                     showModalBottomSheet<void>(
                         context: context,
                         builder: (BuildContext context) {
+                          /*
+
+                          Filters from old Android app:
+
+                          <item>Gratis</item>
+                          <item>Åpen nå</item>
+                          <item>Handicap</item>
+                          <item>Stellerom</item>
+                          <item>Kun pissoir</item>
+
+                           */
                           return new Column(
                             mainAxisSize: MainAxisSize.min,
                             children: <Widget>[
@@ -207,7 +219,10 @@ class _ToiletsState extends State<Toilets> {
           elevation: 4.0,
           icon: const Icon(const IconData(0xf5cd, fontFamily: "mdi")),
           label: const Text("Nærmeste toalett"),
-          onPressed: () {},
+          onPressed: () {
+            final store = StoreProvider.of<AppState>(context);
+            launchMaps(context, store.state.toilets.elementAt(0).getLatLng);
+          },
         ),
         floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
         bottomNavigationBar: _bottomAppBar(),

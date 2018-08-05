@@ -1,6 +1,9 @@
+import 'package:dokart/models/app_state.dart';
 import 'package:dokart/models/meta_state.dart';
 import 'package:dokart/models/toilet.dart';
+import 'package:dokart/utils/maps.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_redux/flutter_redux.dart';
 
 Color _iconColor = Color(0xff35485e);
 
@@ -32,21 +35,25 @@ Widget _top(BuildContext context, Toilet toilet) => Row(
           ),
         ),
         Expanded(
-          child: MaterialButton(
-              onPressed: () {},
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
-                  Icon(
-                    Icons.map,
-                    color: _iconColor,
-                  ),
-                  Text(
-                    "Åpne i kart",
-                    textAlign: TextAlign.center,
-                  )
-                ],
-              )),
+          child: StoreBuilder<AppState>(
+            builder: (BuildContext context, store) => MaterialButton(
+                onPressed: () async {
+                  launchMaps(context, toilet.getLatLng);
+                },
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[
+                    Icon(
+                      Icons.map,
+                      color: _iconColor,
+                    ),
+                    Text(
+                      "Åpne i kart",
+                      textAlign: TextAlign.center,
+                    )
+                  ],
+                )),
+          ),
         )
       ],
     );

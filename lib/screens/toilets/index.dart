@@ -131,7 +131,7 @@ class _ToiletsState extends State<Toilets> {
       ];
 
   BottomAppBar _bottomAppBar() => BottomAppBar(
-        hasNotch: false,
+        //hasNotch: false,
         child: StoreBuilder<AppState>(
           builder: (BuildContext context, store) {
             return Row(

@@ -15,9 +15,10 @@ List<Middleware<AppState>> createLocationMiddleware() {
 Middleware<AppState> _createGetLocationMiddleware() {
   return (Store<AppState> store, action, NextDispatcher next) async {
     if (action is GetLocation) {
-      location.onLocationChanged.listen((Map<String, double> data) {
+      location.onLocationChanged().listen((LocationData data) {
         store.dispatch(LocationChanged(
-            location: LatLng(data["latitude"], data["longitude"])));
+          location: LatLng(data.latitude, data.longitude),
+        ));
       });
     }
   };

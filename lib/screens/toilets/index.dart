@@ -1,9 +1,11 @@
+import 'dart:core';
 import 'dart:math';
 
 import 'package:dokart/mapbox_token.dart';
 import 'package:dokart/models/app_state.dart';
 import 'package:dokart/models/toilet.dart';
 import 'package:dokart/screens/toilets/widgets/toilet_card.dart';
+import 'package:dokart/utils/filter.dart';
 import 'package:dokart/utils/maps.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -19,16 +21,26 @@ class Toilets extends StatefulWidget {
 class _ToiletsState extends State<Toilets> {
   MapController mapController;
   bool _toggleStickToLocation;
+  Filter _filter;
 
   @override
   void initState() {
     mapController = MapController();
     _toggleStickToLocation = false;
+    _filter = Filter();
     super.initState();
   }
 
   _moveToLocation(LatLng location) {
     mapController.move(location, max(mapController.zoom, 16.0));
+  }
+
+  List<Toilet> get toilets {
+    AppState state = StoreProvider.of(context).state;
+
+    // Apply filter to toilets
+    List<Toilet> filtered = _filter.filterToilets(state.toilets);
+    return [];
   }
 
   Marker _myLocation(LatLng currentLocation) => Marker(
@@ -82,8 +94,7 @@ class _ToiletsState extends State<Toilets> {
           Center(
             child: Text(
               "Laster inn...",
-              style: Theme
-                  .of(context)
+              style: Theme.of(context)
                   .textTheme
                   .title
                   .copyWith(fontSize: 30.0, fontWeight: FontWeight.bold),

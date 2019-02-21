@@ -1,139 +1,112 @@
+import 'package:dokart/models/meta_state.dart';
 import 'package:dokart/models/toilet.dart';
+import 'package:meta/meta.dart';
 
+@immutable
 class Filter {
-  bool _free, _open, _handicap, _stellerom, _pissoirOnly;
+  final bool free, open, handicap, stellerom, pissoirOnly;
 
-  bool get free => _free;
+  const Filter(
+      {this.free = false,
+      this.open = false,
+      this.handicap = false,
+      this.stellerom = false,
+      this.pissoirOnly = false});
 
-  set free(bool value) {
-    _free = value;
-  }
+  Filter copyWith(
+          {bool free,
+          bool open,
+          bool handicap,
+          bool stellerom,
+          bool pissoirOnly}) =>
+      Filter(
+          free: free ?? this.free,
+          open: open ?? this.open,
+          handicap: handicap ?? this.handicap,
+          stellerom: stellerom ?? this.stellerom,
+          pissoirOnly: pissoirOnly ?? this.pissoirOnly);
 
-  get open => _open;
+  Filter setFree(bool free) => copyWith(free: free);
 
-  set open(value) {
-    _open = value;
-  }
+  Filter setOpen(bool open) => copyWith(open: open);
 
-  get handicap => _handicap;
+  Filter setHandicap(bool handicap) => copyWith(handicap: handicap);
 
-  set handicap(value) {
-    _handicap = value;
-  }
+  Filter setStellerom(bool stellerom) => copyWith(stellerom: stellerom);
 
-  get stellerom => _stellerom;
-
-  set stellerom(value) {
-    _stellerom = value;
-  }
-
-  get pissoirOnly => _pissoirOnly;
-
-  set pissoirOnly(value) {
-    _pissoirOnly = value;
-  }
+  Filter setPissoirOnly(bool pissoirOnly) => copyWith(pissoirOnly: pissoirOnly);
 
   bool get _isFilterActive =>
-      _free || _open || _handicap || _stellerom || _pissoirOnly;
+      free || open || handicap || stellerom || pissoirOnly;
+
+  String _fixTimeStamp(String time) {
+    return time.replaceAll("\.", ":").replaceAll("24:00", "00:00") + ":00";
+  }
 
   List<Toilet> filterToilets(List<Toilet> toilets) {
     if (!_isFilterActive) return toilets;
     DateTime now = DateTime.now();
-    bool weekday = now.weekday >= 1 && now.weekday <= 5;
-    bool saturday = now.weekday == 6;
-    bool sunday = now.weekday == 7;
 
     return toilets.where((Toilet t) {
+      bool keepToilet = free ? t.getPris == 0 : t.getPris > 0;
 
-      // TODO: Implement filter
+      // Check if toilet is open right now.
+      if (open) {
+        String time = t.getTidOfDay(now);
+        if (time == "ALL" || time == "Døgnåpent" || time == "00:00 – 00:00") {
+          keepToilet &= true;
+        } else if (time == "Ukjent" || time == "Stengt") {
+          keepToilet &= false;
+        } else {
+          // We check if the toilet is still open.
+          List<String> timeSplit = time.split(" – ");
+          List<String> from =
+              _fixTimeStamp(timeSplit[0]).split(":"); // HH:mm:ss
+          DateTime fromDT = DateTime(
+            now.year,
+            now.month,
+            now.day,
+            int.parse(from[0]),
+            int.parse(from[1]),
+            int.parse(from[2]),
+          );
+          List<String> to = _fixTimeStamp(timeSplit[1]).split(":"); // HH:mm:ss
+          DateTime toDT = DateTime(
+            now.year,
+            now.month,
+            now.day,
+            int.parse(to[0]),
+            int.parse(to[1]),
+            int.parse(to[2]),
+          );
+          bool isOpen = now.isAfter(fromDT) && now.isBefore(toDT);
 
-      return true;
+          // Keep toilet if open.
+          keepToilet &= isOpen;
+        }
+      }
+
+      // Handicap only toilet.
+      if (handicap) {
+        keepToilet &= t.isRullestol == MetaState.YES;
+      }
+
+      // Baby changing room.
+      if (stellerom) {
+        keepToilet &= t.isStellerom == MetaState.YES;
+      }
+
+      // Pissoir only.
+      if (pissoirOnly) {
+        keepToilet &= t.isPissoir == MetaState.YES;
+      }
+
+      return keepToilet;
     }).toList(growable: false);
   }
+
+  @override
+  String toString() {
+    return 'Filter{free: $free, open: $open, handicap: $handicap, stellerom: $stellerom, pissoirOnly: $pissoirOnly}';
+  }
 }
-
-/*
-    Old java code:
-    --------------
-
-    @Override
-    protected FilterResults performFiltering(CharSequence charSequence) {
-
-        // Parse toilet filters
-        List<ToiletItem> filteredList = null;
-        if (charSequence.length() > 0) {
-            String[] filters = charSequence.toString().split("\\|");
-            boolean free = false, open = false, handicap = false, stellerom = false, pissoirOnly = false;
-
-            if (free || open || handicap || stellerom || pissoirOnly) {
-
-                // Filter original data.
-                filteredList = new ArrayList<>(originalData.size());
-                Calendar cal = Calendar.getInstance();
-                boolean weekday, saturday, sunday;
-                int day = cal.get(Calendar.DAY_OF_WEEK);
-                weekday = day == Calendar.MONDAY ||
-                        day == Calendar.TUESDAY ||
-                        day == Calendar.WEDNESDAY ||
-                        day == Calendar.THURSDAY ||
-                        day == Calendar.FRIDAY;
-                saturday = day == Calendar.SATURDAY;
-                sunday = day == Calendar.SUNDAY;
-                String now = GlobalUtils.getCurrentTimeStamp();
-                for (int i = 0; i < originalData.size(); i++) {
-                    ToiletItem toiletItem = originalData.get(i);
-
-                    // Check if toilet is free.
-                    boolean add = free ? toiletItem.getToilet().getPris() == 0 : toiletItem.getToilet().getPris() > 0;
-
-                    // Check if toilet is open right now.
-                    if (open) {
-                        String time = "";
-                        if (weekday) {
-                            time = toiletItem.getToilet().getTidHverdag();
-                        } else if (saturday) {
-                            time = toiletItem.getToilet().getTidLordag();
-                        } else if (sunday) {
-                            time = toiletItem.getToilet().getTidSondag();
-                        }
-
-                        if (time.equals("ALL") || time.equals("Døgnåpent")) {
-                            add &= true;
-                        } else if (time.equals("Ukjent") || time.equals("Stengt")) {
-                            add &= false;
-                        } else {
-                            String[] timeSplit = time.split(" – ");
-                            String from = GlobalUtils.fixTimeStamp(timeSplit[0]);
-                            String to = GlobalUtils.fixTimeStamp(timeSplit[1]);
-                            try {
-                                add &= GlobalUtils.isTimeBetweenTwoTime(from, to, now);
-                            } catch (ParseException e) {
-                                e.printStackTrace();
-                            }
-                        }
-                    }
-
-                    // Handicap only toilet.
-                    add &= handicap == toiletItem.getToilet().isRullestol();
-
-                    // Baby changing room.
-                    add &= stellerom == toiletItem.getToilet().isStellerom();
-
-                    // Pissoir only.
-                    add &= pissoirOnly == toiletItem.getToilet().isPissoir();
-
-                    // Only add toilet to filtered list if we meet the criteria.
-                    if (add) filteredList.add(toiletItem);
-                }
-            }
-        }
-        if (filteredList == null) filteredList = originalData;
-
-        // Return results.
-        FilterResults results = new FilterResults();
-        results.values = filteredList;
-        results.count = filteredList.size();
-        return results;
-    }
-
- */

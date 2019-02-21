@@ -52,13 +52,18 @@ class Toilet {
   String get getAdresse => adresse;
 
   String _fixToiletTime(String time) {
-    if (time == ("NULL")) {
+    if (time == "NULL") {
       return "Stengt";
+    } else if (time == "ALL") {
+      return "Døgnåpent";
     } else {
-      return time
+      String normalizedTime = time
           .replaceAll("-", " - ")
           .replaceAll("-", "–")
           .replaceAll("  ", " ");
+
+      // Sometimes a sneaky døgnåpent appears.
+      return normalizedTime == "00:00 – 00:00" ? "Døgnåpent" : normalizedTime;
     }
   }
 
@@ -67,6 +72,17 @@ class Toilet {
   String get getTidLordag => _fixToiletTime(tidLordag);
 
   String get getTidSondag => _fixToiletTime(tidSondag);
+
+  String getTidOfDay(DateTime dt) {
+    bool isSaturday = dt.weekday == 6;
+    bool isSunday = dt.weekday == 7;
+    if (isSaturday) {
+      return getTidLordag;
+    } else if (isSunday) {
+      return getTidSondag;
+    }
+    return getTidHverdag;
+  }
 
   MetaState get isRullestol => rullestol == "-1"
       ? MetaState.UNKNOWN

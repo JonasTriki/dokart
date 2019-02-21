@@ -1,6 +1,7 @@
 import 'dart:core';
 import 'dart:math';
 
+import 'package:dokart/data/toilets/actions.dart';
 import 'package:dokart/mapbox_token.dart';
 import 'package:dokart/models/app_state.dart';
 import 'package:dokart/models/toilet.dart';
@@ -11,6 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:latlong/latlong.dart';
+import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:redux/redux.dart';
 
 class Toilets extends StatefulWidget {
@@ -21,26 +23,16 @@ class Toilets extends StatefulWidget {
 class _ToiletsState extends State<Toilets> {
   MapController mapController;
   bool _toggleStickToLocation;
-  Filter _filter;
 
   @override
   void initState() {
     mapController = MapController();
     _toggleStickToLocation = false;
-    _filter = Filter();
     super.initState();
   }
 
   _moveToLocation(LatLng location) {
     mapController.move(location, max(mapController.zoom, 16.0));
-  }
-
-  List<Toilet> get toilets {
-    AppState state = StoreProvider.of(context).state;
-
-    // Apply filter to toilets
-    List<Toilet> filtered = _filter.filterToilets(state.toilets);
-    return [];
   }
 
   Marker _myLocation(LatLng currentLocation) => Marker(
@@ -56,8 +48,10 @@ class _ToiletsState extends State<Toilets> {
                 onTap: () {
                   _moveToLocation(currentLocation);
                 },
-                child: const Icon(const IconData(0xf00c, fontFamily: "mdi"),
-                    color: Color(0xff2196f3)),
+                child: const Icon(
+                  MdiIcons.tooltipAccount,
+                  color: Color(0xff2196f3),
+                ),
               ),
             ),
       );
@@ -117,29 +111,149 @@ class _ToiletsState extends State<Toilets> {
         ),
         MarkerLayerOptions(
           markers: [_myLocation(state.location)]
-            ..addAll(_toiletMarkers(state.toilets)),
+            ..addAll(_toiletMarkers(state.filteredToilets)),
         ),
       ],
     );
   }
 
-  ListView _drawToiletList(BuildContext context, List<Toilet> toilets) =>
-      ListView(
-        children: toilets
-            .map((toilet) => Padding(
-                  padding: const EdgeInsets.all(4.0),
-                  child: toiletCard(context, toilet, () {
-                    print(toilet);
-                    goToToilet(toilet);
-                  }),
-                ))
-            .toList(),
+  Widget _drawToiletList(BuildContext context, List<Toilet> toilets) {
+    if (toilets.isEmpty) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 32.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: <Widget>[
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8.0),
+                child: Icon(
+                  MdiIcons.emoticonSadOutline,
+                  size: 64.0,
+                ),
+              ),
+              Text(
+                "Ingen toaletter som samsvarer med dine filtre",
+                style: TextStyle(
+                  fontSize: 18.0,
+                ),
+              )
+            ],
+          ),
+        ),
       );
+    }
+    return ListView(
+      children: toilets
+          .map((toilet) => Padding(
+                padding: const EdgeInsets.all(4.0),
+                child: toiletCard(context, toilet, () {
+                  goToToilet(toilet);
+                }),
+              ))
+          .toList(),
+    );
+  }
 
   List<Widget> _content(Store<AppState> store) => [
         Expanded(child: _drawMap(context, store.state)),
-        Expanded(child: _drawToiletList(context, store.state.toilets))
+        Expanded(child: _drawToiletList(context, store.state.filteredToilets))
       ];
+
+  Future<Null> filterUpdated(
+      StateSetter updateState, VoidCallback setFilter) async {
+    updateState(() {
+      setFilter();
+    });
+  }
+
+  Widget filterTiles(Store<AppState> store, StateSetter setState) {
+    Color iconColor = Color(0xff35485e);
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: <Widget>[
+        Padding(
+          padding: const EdgeInsets.all( 16.0),
+          child: Text(
+            "Toalettfiltre",
+            style: TextStyle(fontSize: 20.0),
+          ),
+        ),
+        Divider(height: 1.0,),
+        SwitchListTile(
+          secondary: Icon(
+            MdiIcons.cashUsd,
+            color: iconColor,
+          ),
+          title: Text("Gratis"),
+          onChanged: (c) {
+            store.dispatch(
+              ApplyToiletFilter("free", c),
+            );
+            setState(() {});
+          },
+          value: store.state.toiletFilter.free,
+        ),
+        SwitchListTile(
+          secondary: Icon(
+            MdiIcons.doorOpen,
+            color: iconColor,
+          ),
+          title: Text("Åpen nå"),
+          onChanged: (c) {
+            store.dispatch(
+              ApplyToiletFilter("open", c),
+            );
+            setState(() {});
+          },
+          value: store.state.toiletFilter.open,
+        ),
+        SwitchListTile(
+          secondary: Icon(
+            Icons.accessible,
+            color: iconColor,
+          ),
+          title: Text("Handicap"),
+          onChanged: (c) {
+            store.dispatch(
+              ApplyToiletFilter("handicap", c),
+            );
+            setState(() {});
+          },
+          value: store.state.toiletFilter.handicap,
+        ),
+        SwitchListTile(
+          secondary: Icon(
+            MdiIcons.baby,
+            color: iconColor,
+          ),
+          title: Text("Stellerom"),
+          onChanged: (c) {
+            store.dispatch(
+              ApplyToiletFilter("stellerom", c),
+            );
+            setState(() {});
+          },
+          value: store.state.toiletFilter.stellerom,
+        ),
+        SwitchListTile(
+          secondary: Icon(
+            MdiIcons.humanMale,
+            color: iconColor,
+          ),
+          title: Text("Kun pissoir"),
+          onChanged: (c) {
+            store.dispatch(
+              ApplyToiletFilter("pissoirOnly", c),
+            );
+            setState(() {});
+          },
+          value: store.state.toiletFilter.pissoirOnly,
+        ),
+      ],
+    );
+  }
 
   BottomAppBar _bottomAppBar() => BottomAppBar(
         //hasNotch: false,
@@ -155,43 +269,18 @@ class _ToiletsState extends State<Toilets> {
                     showModalBottomSheet<void>(
                         context: context,
                         builder: (BuildContext context) {
-                          /*
-
-                          Filters from old Android app:
-
-                          <item>Gratis</item>
-                          <item>Åpen nå</item>
-                          <item>Handicap</item>
-                          <item>Stellerom</item>
-                          <item>Kun pissoir</item>
-
-                           */
-                          return new Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: <Widget>[
-                              new ListTile(
-                                leading: new Icon(Icons.music_note),
-                                title: new Text('Music'),
-                                onTap: () {},
-                              ),
-                              new ListTile(
-                                leading: new Icon(Icons.photo_album),
-                                title: new Text('Photos'),
-                                onTap: () {},
-                              ),
-                              new ListTile(
-                                leading: new Icon(Icons.videocam),
-                                title: new Text('Video'),
-                                onTap: () {},
-                              ),
-                            ],
+                          return StatefulBuilder(
+                            builder:
+                                (BuildContext context, StateSetter setState) {
+                              return filterTiles(store, setState);
+                            },
                           );
                         });
                   },
                 ),
                 IconButton(
                   icon: Icon(
-                    IconData(0xf1a4, fontFamily: "mdi"),
+                    MdiIcons.crosshairsGps,
                     color: _toggleStickToLocation
                         ? Color(0xff2097f3)
                         : Theme.of(context).iconTheme.color,
@@ -228,11 +317,12 @@ class _ToiletsState extends State<Toilets> {
         }),
         floatingActionButton: FloatingActionButton.extended(
           elevation: 4.0,
-          icon: const Icon(const IconData(0xf5cd, fontFamily: "mdi")),
+          icon: const Icon(MdiIcons.nearMe),
           label: const Text("Nærmeste toalett"),
           onPressed: () {
             final store = StoreProvider.of<AppState>(context);
-            launchMaps(context, store.state.toilets.elementAt(0).getLatLng);
+            launchMaps(
+                context, store.state.filteredToilets.elementAt(0).getLatLng);
           },
         ),
         floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,

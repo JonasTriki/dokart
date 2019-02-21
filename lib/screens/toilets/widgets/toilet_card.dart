@@ -4,6 +4,7 @@ import 'package:dokart/models/toilet.dart';
 import 'package:dokart/utils/maps.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
+import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 
 Color _iconColor = Color(0xff35485e);
 
@@ -19,8 +20,7 @@ Widget _top(BuildContext context, Toilet toilet) => Row(
               Text(
                 toilet.getDistance,
                 textScaleFactor: 1.5,
-                style: Theme
-                    .of(context)
+                style: Theme.of(context)
                     .textTheme
                     .body1
                     .copyWith(fontWeight: FontWeight.bold),
@@ -79,9 +79,9 @@ Widget _bottom(BuildContext context, Toilet toilet) {
     additionalInfoItems.add(_infoItem(context, Icons.accessible, "Rullestom"));
   }
   if (toilet.isStellerom == MetaState.YES) {
-    additionalInfoItems.add(_infoItem(
-        context, const IconData(0xf06c, fontFamily: "mdi"), "Stellerom"));
+    additionalInfoItems.add(_infoItem(context, MdiIcons.baby, "Stellerom"));
   }
+  TextStyle weekendStyle = TextStyle(color: Color(0xfff32121));
   return Row(
     mainAxisAlignment: MainAxisAlignment.spaceAround,
     children: <Widget>[
@@ -106,10 +106,12 @@ Widget _bottom(BuildContext context, Toilet toilet) {
               Text(
                 toilet.getTidLordag,
                 textScaleFactor: 0.9,
+                style: weekendStyle,
               ),
               Text(
                 toilet.getTidSondag,
                 textScaleFactor: 0.9,
+                style: weekendStyle,
               ),
             ],
           )

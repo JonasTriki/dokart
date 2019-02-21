@@ -10,6 +10,10 @@ Future<List<Toilet>> fetchToilets(String endpoint) async {
     var jsonToilets = json.decode(res.body)['entries'];
     List<Toilet> toilets = [];
     for (var toilet in jsonToilets) {
+      Toilet t = Toilet.fromJson(toilet);
+
+      // Remove false-positives
+      if (t.latitude == "" && t.longitude == "") continue;
       toilets.add(Toilet.fromJson(toilet));
     }
     return toilets;

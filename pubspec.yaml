@@ -21,6 +21,7 @@ dependencies:
   flutter_map: ^0.4.0
 
   flutter_launcher_icons: ^0.7.0
+  material_design_icons_flutter: ^3.1.3493
 
 dev_dependencies:
   flutter_test:
@@ -41,11 +42,6 @@ flutter:
   # To add assets to your application, add an assets section, like this:
   assets:
     - assets/
-
-  fonts:
-    - family: mdi
-      fonts:
-        - asset: fonts/mdi.ttf
 
 flutter_icons:
   android: true

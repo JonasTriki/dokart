@@ -15,7 +15,9 @@ List<Middleware<AppState>> createLocationMiddleware() {
 Middleware<AppState> _createGetLocationMiddleware() {
   return (Store<AppState> store, action, NextDispatcher next) async {
     if (action is GetLocation) {
-      location.onLocationChanged().listen((LocationData data) {
+      location.onLocationChanged().handleError((error) {
+        print("Location-error: " + error);
+      }).listen((LocationData data) {
         store.dispatch(LocationChanged(
           location: LatLng(data.latitude, data.longitude),
         ));

@@ -7,6 +7,11 @@ android/app/google-services.json
 # Mapbox keys
 lib/mapbox_token.dart
 
+# Android stuff
+android/key.properties
+android/app/dokart-public.jks
+android/.idea
+
 ### AndroidStudio ###
 # Covers files to be ignored for android development using Android Studio.
 

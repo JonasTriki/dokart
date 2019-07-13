@@ -76,7 +76,7 @@ Widget _infoItem(BuildContext context, IconData iconData, String text) =>
 Widget _bottom(BuildContext context, Toilet toilet) {
   final List<Widget> additionalInfoItems = [];
   if (toilet.isRullestol == MetaState.YES) {
-    additionalInfoItems.add(_infoItem(context, Icons.accessible, "Rullestom"));
+    additionalInfoItems.add(_infoItem(context, Icons.accessible, "Rullestol"));
   }
   if (toilet.isStellerom == MetaState.YES) {
     additionalInfoItems.add(_infoItem(context, MdiIcons.baby, "Stellerom"));
@@ -123,29 +123,32 @@ Widget _bottom(BuildContext context, Toilet toilet) {
   );
 }
 
-Card toiletCard(BuildContext context, Toilet toilet, onClick) => Card(
-      elevation: 2.0,
-      child: InkWell(
-        onTap: () {
-          onClick();
-        },
-        child: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: SizedBox(
-            height: 120.0,
-            child: Column(
-              mainAxisSize: MainAxisSize.max,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                Expanded(
-                  child: _top(context, toilet),
-                ),
-                Expanded(
-                  child: _bottom(context, toilet),
-                )
-              ],
-            ),
+Card toiletCard(BuildContext context, Toilet toilet, onClick) {
+  if (toilet.getAdresse == null) print(toilet);
+  return Card(
+    elevation: 2.0,
+    child: InkWell(
+      onTap: () {
+        onClick();
+      },
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: SizedBox(
+          height: 120.0,
+          child: Column(
+            mainAxisSize: MainAxisSize.max,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Expanded(
+                child: _top(context, toilet),
+              ),
+              Expanded(
+                child: _bottom(context, toilet),
+              )
+            ],
           ),
         ),
       ),
-    );
+    ),
+  );
+}

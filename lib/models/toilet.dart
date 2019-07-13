@@ -128,29 +128,22 @@ class Toilet {
     final dynamic geometry = json['geometry'];
 
     String getApningstid() {
-      final String apningstid = attributes['Åpningstid'];
-      if (apningstid.contains(", ")) {
-        return apningstid.split(", ")[0];
-      } else if (apningstid.contains("døgn")) {
-        return "Døgnåpent";
-      } else if (apningstid.contains(" - ")) {
-        return apningstid;
-      } else {
-        return "Ukjent";
-      }
+
+      // Oslo's APIs decided to remove opening time for some reason.
+      return "Ukjent";
     }
 
     return Toilet(
         latitude: geometry['y'],
         longitude: geometry['x'],
-        pris: attributes['Betaling'],
+        pris: 'Ja',
         plassering: attributes['Navn'],
-        adresse: attributes['Sted'],
+        adresse: attributes['Bydel'] ?? "Ukjent",
         tidHverdag: getApningstid(),
         tidLordag: getApningstid(),
         tidSondag: getApningstid(),
         pissoir: "-1",
-        rullestol: attributes['Type'] == "UU Toalett" ? "1" : "0",
+        rullestol: attributes['Toalettype'].toString(),
         stellerom: "-1");
   }
 

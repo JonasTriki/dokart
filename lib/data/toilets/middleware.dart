@@ -36,11 +36,12 @@ Middleware<AppState> _createLoadToiletsMiddleware() {
         final List<Toilet> firestoreToilets = await fetchFirestoreToilets();
         print("Fetched " + firestoreToilets.length.toString() + " toilets!");
 
-        store.dispatch(LoadToiletsSuccessful(
-            toilets: bergenToilets
-              ..addAll(stavangerToilets)
-              ..addAll(osloToilets)
-              ..addAll(firestoreToilets)));
+        final allToilets = bergenToilets
+          ..addAll(stavangerToilets)
+          ..addAll(osloToilets)
+          ..addAll(firestoreToilets);
+
+        store.dispatch(LoadToiletsSuccessful(toilets: allToilets));
       } catch (error) {
         store.dispatch(LoadToiletsError(error));
       }

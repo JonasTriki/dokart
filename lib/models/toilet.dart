@@ -42,12 +42,7 @@ class Toilet {
 
   int get getPris => pris == "Ja" ? -1 : int.tryParse(pris) ?? 0;
 
-  String get getPlassering {
-    if (plassering == null) {
-      print(this);
-    }
-    return plassering.replaceAll(" , ", ", ");
-  }
+  String get getPlassering => plassering.replaceAll(" , ", ", ");
 
   String get getAdresse => adresse;
 

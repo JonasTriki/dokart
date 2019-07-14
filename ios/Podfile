@@ -1,5 +1,6 @@
 # Uncomment this line to define a global platform for your project
 # platform :ios, '9.0'
+install! 'cocoapods', :disable_input_output_paths => true
 
 # CocoaPods analytics sends network stats synchronously affecting flutter build latency.
 ENV['COCOAPODS_DISABLE_STATS'] = 'true'
@@ -34,6 +35,8 @@ end
 
 target 'Runner' do
   use_frameworks!
+  
+  pod 'Firebase/Firestore'
 
   # Prepare symlinks folder. We use symlinks to avoid having Podfile.lock
   # referring to absolute paths on developers' machines.

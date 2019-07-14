@@ -86,7 +86,6 @@ class _ToiletsState extends State<Toilets> {
       );
     }
     return GoogleMap(
-      mapType: MapType.hybrid,
       onMapCreated: (GoogleMapController controller) {
         _mapController.complete(controller);
       },
@@ -129,8 +128,6 @@ class _ToiletsState extends State<Toilets> {
           .map((toilet) => Padding(
                 padding: const EdgeInsets.all(4.0),
                 child: toiletCard(context, toilet, () async {
-                  final GoogleMapController controller =
-                      await _mapController.future;
                   goToToilet(toilet);
                 }),
               ))
@@ -240,7 +237,6 @@ class _ToiletsState extends State<Toilets> {
   }
 
   BottomAppBar _bottomAppBar() => BottomAppBar(
-        //hasNotch: false,
         child: StoreBuilder<AppState>(
           builder: (BuildContext context, store) {
             return Row(

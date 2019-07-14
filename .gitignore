@@ -12,6 +12,7 @@ android/app/src/main/res/values/api_keys.xml
 
 # Xcode config
 ios/Runner/Config.plist
+ios/Runner/GoogleService-Info.plist
 
 ### AndroidStudio ###
 # Covers files to be ignored for android development using Android Studio.

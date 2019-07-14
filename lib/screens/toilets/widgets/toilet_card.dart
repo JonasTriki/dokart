@@ -124,7 +124,6 @@ Widget _bottom(BuildContext context, Toilet toilet) {
 }
 
 Card toiletCard(BuildContext context, Toilet toilet, onClick) {
-  if (toilet.getAdresse == null) print(toilet);
   return Card(
     elevation: 2.0,
     child: InkWell(

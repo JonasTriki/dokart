@@ -42,13 +42,15 @@
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
 	<key>NSLocationAlwaysUsageDescription</key>
-    <string>Dokart bruker posisjonen din for å finne toaletter i nærheten av deg</string>
+	<string>Dokart bruker posisjonen din for å finne toaletter i nærheten av deg</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
-    <string>Dokart bruker posisjonen din for å finne toaletter i nærheten av deg</string>
-    <key>LSApplicationQueriesSchemes</key>
-    <array>
-        <string>googlechromes</string>
-        <string>comgooglemaps</string>
-    </array>
+	<string>Dokart bruker posisjonen din for å finne toaletter i nærheten av deg</string>
+	<key>io.flutter.embedded_views_preview</key>
+	<true/>
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+		<string>googlechromes</string>
+		<string>comgooglemaps</string>
+	</array>
 </dict>
 </plist>

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources />
+
+<!--
+Copy this file, rename it to "api-keys.xml" and fill the keys:
+
+<resources>
+    <string name="google_credentials_api_key">...</string>
+</resources>
+-->

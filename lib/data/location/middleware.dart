@@ -1,6 +1,6 @@
 import 'package:dokart/data/location/actions.dart';
 import 'package:dokart/models/app_state.dart';
-import 'package:latlong/latlong.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:location/location.dart';
 import 'package:redux/redux.dart';
 

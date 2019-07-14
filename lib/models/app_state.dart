@@ -1,6 +1,7 @@
 import 'package:dokart/models/toilet.dart';
 import 'package:dokart/utils/filter.dart';
-import 'package:latlong/latlong.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:location/location.dart';
 import 'package:meta/meta.dart';
 
 @immutable

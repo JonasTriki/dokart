@@ -1,6 +1,6 @@
 import 'package:dokart/models/meta_state.dart';
 import 'package:flutter/widgets.dart';
-import 'package:latlong/latlong.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 class Toilet {
   // Dynamic because Oslo/Firestore toilets gets parsed to double, whilst Oslo/Stvg is string, so we need to make it flexible.
@@ -50,6 +50,10 @@ class Toilet {
   }
 
   String get getAdresse => adresse;
+
+  String get name => getAdresse.trim().length > 0
+      ? getAdresse
+      : getPlassering;
 
   String _fixToiletTime(String time) {
     if (time == "NULL") {

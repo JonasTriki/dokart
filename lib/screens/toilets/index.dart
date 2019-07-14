@@ -1,17 +1,15 @@
+import 'dart:async';
 import 'dart:core';
 import 'dart:math';
 
 import 'package:dokart/data/toilets/actions.dart';
-import 'package:dokart/mapbox_token.dart';
 import 'package:dokart/models/app_state.dart';
 import 'package:dokart/models/toilet.dart';
 import 'package:dokart/screens/toilets/widgets/toilet_card.dart';
-import 'package:dokart/utils/filter.dart';
 import 'package:dokart/utils/maps.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_redux/flutter_redux.dart';
-import 'package:latlong/latlong.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:redux/redux.dart';
 
@@ -21,67 +19,57 @@ class Toilets extends StatefulWidget {
 }
 
 class _ToiletsState extends State<Toilets> {
-  MapController mapController;
+  Completer<GoogleMapController> _mapController = Completer();
+  BitmapDescriptor _toiletIcon;
   bool _toggleStickToLocation;
 
   @override
   void initState() {
-    mapController = MapController();
     _toggleStickToLocation = false;
+    loadAssets();
     super.initState();
   }
 
-  _moveToLocation(LatLng location) {
-    mapController.move(location, max(mapController.zoom, 16.0));
+  loadAssets() {
+    BitmapDescriptor.fromAssetImage(
+      ImageConfiguration(),
+      "assets/toilet.png",
+    ).then((value) => _toiletIcon = value);
   }
 
-  Marker _myLocation(LatLng currentLocation) => Marker(
-        point: currentLocation,
-        builder: (ctx) => Container(
-              decoration: BoxDecoration(boxShadow: [
-                BoxShadow(
-                    color: const Color(0xffffffff),
-                    spreadRadius: -5.0,
-                    blurRadius: 5.0)
-              ]),
-              child: GestureDetector(
-                onTap: () {
-                  _moveToLocation(currentLocation);
-                },
-                child: const Icon(
-                  MdiIcons.tooltipAccount,
-                  color: Color(0xff2196f3),
-                ),
-              ),
-            ),
-      );
+  Future _moveToLocation(LatLng location) async {
+    final GoogleMapController controller = await _mapController.future;
+    controller.animateCamera(CameraUpdate.newCameraPosition(
+      CameraPosition(target: location, zoom: max(0, 16.0)),
+    ));
+  }
 
-  goToToilet(Toilet toilet) =>
-      mapController.move(toilet.getLatLng, max(mapController.zoom, 16.0));
+  goToToilet(Toilet toilet) => _moveToLocation(toilet.getLatLng);
 
   List<Marker> _toiletMarkers(List<Toilet> toilets) => toilets
-      .map((toilet) => Marker(
-            width: 40.0,
-            height: 40.0,
-            point: toilet.getLatLng,
-            builder: (ctx) => GestureDetector(
-                  onTap: () {
-                    goToToilet(toilet);
-                  },
-                  child: Tooltip(
-                    key: toilet.key,
-                    preferBelow: false,
-                    message: toilet.getAdresse,
-                    child: Image.asset(
-                      "assets/marker.png",
-                    ),
-                  ),
-                ),
-          ))
+      .asMap()
+      .map(
+        (i, toilet) => MapEntry(
+          i,
+          Marker(
+            markerId: MarkerId("toilet-" + i.toString()),
+            position: toilet.getLatLng,
+            icon: _toiletIcon,
+            infoWindow: InfoWindow(
+              title: toilet.name,
+              snippet: toilet.getDistance + " unna",
+            ),
+            onTap: () {
+              _moveToLocation(toilet.getLatLng);
+            },
+          ),
+        ),
+      )
+      .values
       .toList();
 
   Widget _drawMap(BuildContext context, AppState state) {
-    if (state.location == null) {
+    if (state.location == null || _toiletIcon == null) {
       return Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
@@ -97,23 +85,15 @@ class _ToiletsState extends State<Toilets> {
         ],
       );
     }
-    return FlutterMap(
-      mapController: mapController,
-      options: MapOptions(center: state.location, zoom: 16.0),
-      layers: [
-        TileLayerOptions(
-          urlTemplate: "https://api.tiles.mapbox.com/v4/"
-              "{id}/{z}/{x}/{y}@2x.png?access_token={accessToken}",
-          additionalOptions: {
-            "accessToken": MAPBOX_TOKEN,
-            "id": "mapbox.streets",
-          },
-        ),
-        MarkerLayerOptions(
-          markers: [_myLocation(state.location)]
-            ..addAll(_toiletMarkers(state.filteredToilets)),
-        ),
-      ],
+    return GoogleMap(
+      mapType: MapType.hybrid,
+      onMapCreated: (GoogleMapController controller) {
+        _mapController.complete(controller);
+      },
+      markers: Set.from(_toiletMarkers(state.toilets)),
+      myLocationEnabled: true,
+      myLocationButtonEnabled: false,
+      initialCameraPosition: CameraPosition(target: state.location),
     );
   }
 
@@ -148,7 +128,9 @@ class _ToiletsState extends State<Toilets> {
       children: toilets
           .map((toilet) => Padding(
                 padding: const EdgeInsets.all(4.0),
-                child: toiletCard(context, toilet, () {
+                child: toiletCard(context, toilet, () async {
+                  final GoogleMapController controller =
+                      await _mapController.future;
                   goToToilet(toilet);
                 }),
               ))
@@ -174,13 +156,15 @@ class _ToiletsState extends State<Toilets> {
       mainAxisSize: MainAxisSize.min,
       children: <Widget>[
         Padding(
-          padding: const EdgeInsets.all( 16.0),
+          padding: const EdgeInsets.all(16.0),
           child: Text(
             "Toalettfiltre",
             style: TextStyle(fontSize: 20.0),
           ),
         ),
-        Divider(height: 1.0,),
+        Divider(
+          height: 1.0,
+        ),
         SwitchListTile(
           secondary: Icon(
             MdiIcons.cashUsd,

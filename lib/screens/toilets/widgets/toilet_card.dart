@@ -1,5 +1,4 @@
 import 'package:dokart/models/app_state.dart';
-import 'package:dokart/models/meta_state.dart';
 import 'package:dokart/models/toilet.dart';
 import 'package:dokart/utils/maps.dart';
 import 'package:flutter/material.dart';
@@ -25,12 +24,7 @@ Widget _top(BuildContext context, Toilet toilet) => Row(
                     .body1
                     .copyWith(fontWeight: FontWeight.bold),
               ),
-              Text(
-                toilet.getAdresse.trim().length > 0
-                    ? toilet.getAdresse
-                    : toilet.getPlassering,
-                textScaleFactor: 0.9,
-              )
+              Text(toilet.name, textScaleFactor: 0.9)
             ],
           ),
         ),
@@ -75,10 +69,10 @@ Widget _infoItem(BuildContext context, IconData iconData, String text) =>
 
 Widget _bottom(BuildContext context, Toilet toilet) {
   final List<Widget> additionalInfoItems = [];
-  if (toilet.isRullestol == MetaState.YES) {
+  if (toilet.accessible) {
     additionalInfoItems.add(_infoItem(context, Icons.accessible, "Rullestol"));
   }
-  if (toilet.isStellerom == MetaState.YES) {
+  if (toilet.babycare) {
     additionalInfoItems.add(_infoItem(context, MdiIcons.baby, "Stellerom"));
   }
   TextStyle weekendStyle = TextStyle(color: Color(0xfff32121));
@@ -100,16 +94,16 @@ Widget _bottom(BuildContext context, Toilet toilet) {
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
               Text(
-                toilet.getTidHverdag,
+                toilet.openingHours.weekday.toString(),
                 textScaleFactor: 0.9,
               ),
               Text(
-                toilet.getTidLordag,
+                toilet.openingHours.saturday.toString(),
                 textScaleFactor: 0.9,
                 style: weekendStyle,
               ),
               Text(
-                toilet.getTidSondag,
+                toilet.openingHours.sunday.toString(),
                 textScaleFactor: 0.9,
                 style: weekendStyle,
               ),
@@ -118,7 +112,7 @@ Widget _bottom(BuildContext context, Toilet toilet) {
         ],
       ),
       _infoItem(context, Icons.monetization_on,
-          toilet.getPris > 0 ? toilet.getPris.toString() + " kr" : "Gratis")
+          toilet.price > 0 ? toilet.price.toString() + " kr" : "Gratis")
     ]..addAll(additionalInfoItems),
   );
 }

@@ -1,46 +1,45 @@
-import 'package:dokart/models/meta_state.dart';
+import 'package:dokart/models/opening_hour.dart';
 import 'package:dokart/models/toilet.dart';
 import 'package:meta/meta.dart';
 
 @immutable
 class Filter {
-  final bool free, open, handicap, stellerom, pissoirOnly;
+  final bool free, open, accessible, babycare, pissoir;
 
   const Filter(
       {this.free = false,
       this.open = false,
-      this.handicap = false,
-      this.stellerom = false,
-      this.pissoirOnly = false});
+      this.accessible = false,
+      this.babycare = false,
+      this.pissoir = false});
 
   Filter copyWith(
           {bool free,
           bool open,
-          bool handicap,
-          bool stellerom,
-          bool pissoirOnly}) =>
+          bool accessible,
+          bool babycare,
+          bool pissoir}) =>
       Filter(
           free: free ?? this.free,
           open: open ?? this.open,
-          handicap: handicap ?? this.handicap,
-          stellerom: stellerom ?? this.stellerom,
-          pissoirOnly: pissoirOnly ?? this.pissoirOnly);
+          accessible: accessible ?? this.accessible,
+          babycare: babycare ?? this.babycare,
+          pissoir: pissoir ?? this.pissoir);
 
   Filter setFree(bool free) => copyWith(free: free);
 
   Filter setOpen(bool open) => copyWith(open: open);
 
-  Filter setHandicap(bool handicap) => copyWith(handicap: handicap);
+  Filter setAccessible(bool accessible) => copyWith(accessible: accessible);
 
-  Filter setStellerom(bool stellerom) => copyWith(stellerom: stellerom);
+  Filter setBabycare(bool babycare) => copyWith(babycare: babycare);
 
-  Filter setPissoirOnly(bool pissoirOnly) => copyWith(pissoirOnly: pissoirOnly);
+  Filter setPissoir(bool pissoir) => copyWith(pissoir: pissoir);
 
-  bool get _isFilterActive =>
-      free || open || handicap || stellerom || pissoirOnly;
+  bool get _isFilterActive => free || open || accessible || babycare || pissoir;
 
   String _fixTimeStamp(String time) {
-    return time.replaceAll("\.", ":").replaceAll("24:00", "00:00") + ":00";
+    return time.replaceAll("24:00", "00:00") + ":00";
   }
 
   List<Toilet> filterToilets(List<Toilet> toilets) {
@@ -48,20 +47,20 @@ class Filter {
     DateTime now = DateTime.now();
 
     return toilets.where((Toilet t) {
-      bool keepToilet = free ? t.getPris == 0 : t.getPris > 0;
+      bool keepToilet = free ? t.price == 0 : t.price > 0;
 
       // Check if toilet is open right now.
       if (open) {
-        String time = t.getTidOfDay(now);
-        if (time == "ALL" || time == "Døgnåpent" || time == "00:00 – 00:00") {
+        OpeningHour openingHour = t.getCurrentOpeningHour(now);
+        if (openingHour.isAlwaysOpen) {
           keepToilet &= true;
-        } else if (time == "Ukjent" || time == "Stengt") {
+        } else if (openingHour.isClosed) {
           keepToilet &= false;
         } else {
+
           // We check if the toilet is still open.
-          List<String> timeSplit = time.split(" – ");
           List<String> from =
-              _fixTimeStamp(timeSplit[0]).split(":"); // HH:mm:ss
+              _fixTimeStamp(openingHour.from).split(":"); // HH:mm:ss
           DateTime fromDT = DateTime(
             now.year,
             now.month,
@@ -70,7 +69,7 @@ class Filter {
             int.parse(from[1]),
             int.parse(from[2]),
           );
-          List<String> to = _fixTimeStamp(timeSplit[1]).split(":"); // HH:mm:ss
+          List<String> to = _fixTimeStamp(openingHour.to).split(":"); // HH:mm:ss
           DateTime toDT = DateTime(
             now.year,
             now.month,
@@ -87,18 +86,18 @@ class Filter {
       }
 
       // Handicap only toilet.
-      if (handicap) {
-        keepToilet &= t.isRullestol == MetaState.YES;
+      if (accessible) {
+        keepToilet &= t.accessible;
       }
 
       // Baby changing room.
-      if (stellerom) {
-        keepToilet &= t.isStellerom == MetaState.YES;
+      if (babycare) {
+        keepToilet &= t.babycare;
       }
 
       // Pissoir only.
-      if (pissoirOnly) {
-        keepToilet &= t.isPissoir == MetaState.YES;
+      if (pissoir) {
+        keepToilet &= t.pissoir;
       }
 
       return keepToilet;
@@ -107,6 +106,6 @@ class Filter {
 
   @override
   String toString() {
-    return 'Filter{free: $free, open: $open, handicap: $handicap, stellerom: $stellerom, pissoirOnly: $pissoirOnly}';
+    return 'Filter{free: $free, open: $open, accessible: $accessible, babycare: $babycare, pissoir: $pissoir}';
   }
 }

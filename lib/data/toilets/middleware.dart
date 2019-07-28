@@ -1,8 +1,5 @@
 import 'package:dokart/data/toilets/actions.dart';
-import 'package:dokart/data/toilets/cities/bergen.dart';
-import 'package:dokart/data/toilets/cities/firestore_cities.dart';
-import 'package:dokart/data/toilets/cities/oslo.dart';
-import 'package:dokart/data/toilets/cities/stavanger.dart';
+import 'package:dokart/data/toilets/firestore/index.dart';
 import 'package:dokart/models/app_state.dart';
 import 'package:dokart/models/toilet.dart';
 import 'package:dokart/utils/filter.dart';
@@ -20,28 +17,11 @@ Middleware<AppState> _createLoadToiletsMiddleware() {
   return (Store<AppState> store, action, NextDispatcher next) async {
     if (action is LoadToilets) {
       try {
-        print("Fetching Bergen toilets...");
-        final List<Toilet> bergenToilets = await fetchBergenToilets();
-        print("Fetched " + bergenToilets.length.toString() + " toilets!");
-
-        print("Fetching Stavanger toilets...");
-        final List<Toilet> stavangerToilets = await fetchStavangerToilets();
-        print("Fetched " + stavangerToilets.length.toString() + " toilets!");
-
-        print("Fetching Oslo toilets...");
-        final List<Toilet> osloToilets = await fetchOsloToilets();
-        print("Fetched " + osloToilets.length.toString() + " toilets!");
-
         print("Fetching toilets from Cloud Firestore...");
-        final List<Toilet> firestoreToilets = await fetchFirestoreToilets();
-        print("Fetched " + firestoreToilets.length.toString() + " toilets!");
+        final List<Toilet> toilets = await fetchFirestoreToilets();
+        print("Fetched " + toilets.length.toString() + " toilets!");
 
-        final allToilets = bergenToilets
-          ..addAll(stavangerToilets)
-          ..addAll(osloToilets)
-          ..addAll(firestoreToilets);
-
-        store.dispatch(LoadToiletsSuccessful(toilets: allToilets));
+        store.dispatch(LoadToiletsSuccessful(toilets: toilets));
       } catch (error) {
         store.dispatch(LoadToiletsError(error));
       }
@@ -61,13 +41,13 @@ Middleware<AppState> _createApplyToiletFilterMiddleware() {
           store.dispatch(SetToiletFilter(f.setOpen(action.on)));
           break;
         case "handicap":
-          store.dispatch(SetToiletFilter(f.setHandicap(action.on)));
+          store.dispatch(SetToiletFilter(f.setAccessible(action.on)));
           break;
         case "stellerom":
-          store.dispatch(SetToiletFilter(f.setStellerom(action.on)));
+          store.dispatch(SetToiletFilter(f.setBabycare(action.on)));
           break;
         case "pissoirOnly":
-          store.dispatch(SetToiletFilter(f.setPissoirOnly(action.on)));
+          store.dispatch(SetToiletFilter(f.setPissoir(action.on)));
           break;
       }
     }

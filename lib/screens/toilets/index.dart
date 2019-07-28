@@ -92,7 +92,7 @@ class _ToiletsState extends State<Toilets> {
       markers: Set.from(_toiletMarkers(state.toilets)),
       myLocationEnabled: true,
       myLocationButtonEnabled: false,
-      initialCameraPosition: CameraPosition(target: state.location),
+      initialCameraPosition: CameraPosition(target: state.location, zoom: 16.0),
     );
   }
 
@@ -202,7 +202,7 @@ class _ToiletsState extends State<Toilets> {
             );
             setState(() {});
           },
-          value: store.state.toiletFilter.handicap,
+          value: store.state.toiletFilter.accessible,
         ),
         SwitchListTile(
           secondary: Icon(
@@ -216,7 +216,7 @@ class _ToiletsState extends State<Toilets> {
             );
             setState(() {});
           },
-          value: store.state.toiletFilter.stellerom,
+          value: store.state.toiletFilter.babycare,
         ),
         SwitchListTile(
           secondary: Icon(
@@ -230,7 +230,7 @@ class _ToiletsState extends State<Toilets> {
             );
             setState(() {});
           },
-          value: store.state.toiletFilter.pissoirOnly,
+          value: store.state.toiletFilter.pissoir,
         ),
       ],
     );

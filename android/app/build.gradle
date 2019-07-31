@@ -36,7 +36,7 @@ android {
         applicationId "no.triki.dokart"
         minSdkVersion 16
         targetSdkVersion 28
-        versionCode 11
+        versionCode 12
         versionName "1.6"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         multiDexEnabled true

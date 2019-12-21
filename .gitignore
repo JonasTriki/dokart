@@ -168,6 +168,7 @@ doc/api/
 
 ### Flutter ###
 .flutter-plugins
-
+.flutter-plugins-dependencies
+ios/Flutter/flutter_export_environment.sh
 
 # End of https://www.gitignore.io/api/dart,flutter,androidstudio

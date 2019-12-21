@@ -1,5 +1,6 @@
 name: dokart
 description: Dokart
+version: 1.6.0+13
 
 dependencies:
   flutter:

@@ -10,6 +10,8 @@ import 'package:redux/redux.dart';
 import 'package:redux_logging/redux_logging.dart';
 
 void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
   await Firestore.instance.settings(timestampsInSnapshotsEnabled: true);
 
   runApp(AppConfig(appName: "Dokart", child: Dokart()));

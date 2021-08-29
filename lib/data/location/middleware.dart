@@ -15,23 +15,34 @@ List<Middleware<AppState>> createLocationMiddleware() {
 Middleware<AppState> _createGetLocationMiddleware() {
   return (Store<AppState> store, action, NextDispatcher next) async {
     if (action is GetLocation) {
-      var hasPermission = await location.hasPermission();
-      if (!hasPermission) {
-        hasPermission = await location.requestPermission();
+      bool serviceEnabled = await location.serviceEnabled();
+      if (!serviceEnabled) {
+        serviceEnabled = await location.requestService();
+        if (!serviceEnabled) {
+          // TODO: Do something when no service.
+          print("Location service not enabled.");
+          return;
+        }
       }
-      if (!hasPermission) {
 
-        // TODO: Do something when no permission
-        print("Location permission not granted.");
-        return;
+      var permissionStatus = await location.hasPermission();
+      if (permissionStatus == PermissionStatus.denied) {
+        permissionStatus = await location.requestPermission();
+        if (permissionStatus != PermissionStatus.granted) {
+          // TODO: Do something when no permission.
+          print("Location permission not granted.");
+          return;
+        }
       }
-      location.onLocationChanged().handleError((error) {
-        print("Location-error: " + error);
-      }).listen((LocationData data) {
+
+      location.onLocationChanged.listen((LocationData data) {
         store.dispatch(LocationChanged(
           location: LatLng(data.latitude, data.longitude),
         ));
-      });
+      })
+        ..onError((error, stackTrace) {
+          print("Location-error: " + error);
+        });
     }
   };
 }

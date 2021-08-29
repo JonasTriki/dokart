@@ -13,7 +13,7 @@ Map<String, WidgetBuilder> getRoutes() => {
             onInit: (Store store) {
               return store.dispatch(LoadToilets());
             },
-            onWillChange: (store) {
+            onWillChange: (_, Store store) {
               if (store.state.toilets.isNotEmpty) {
                 store.dispatch(GetLocation());
                 Navigator.of(context).pushReplacementNamed("/toilets");

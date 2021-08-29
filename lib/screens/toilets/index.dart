@@ -78,7 +78,7 @@ class _ToiletsState extends State<Toilets> {
               "Laster inn...",
               style: Theme.of(context)
                   .textTheme
-                  .title
+                  .headline6
                   .copyWith(fontSize: 30.0, fontWeight: FontWeight.bold),
             ),
           )
@@ -290,7 +290,7 @@ class _ToiletsState extends State<Toilets> {
           return orientation == Orientation.portrait
               ? Column(children: _content(store))
               : Row(children: _content(store));
-        }, onDidChange: (Store<AppState> store) {
+        }, onDidChange: (_, Store<AppState> store) {
           if (_toggleStickToLocation) {
             _moveToLocation(store.state.location);
           }

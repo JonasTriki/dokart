@@ -21,7 +21,7 @@ Widget _top(BuildContext context, Toilet toilet) => Row(
                 textScaleFactor: 1.5,
                 style: Theme.of(context)
                     .textTheme
-                    .body1
+                    .bodyText2
                     .copyWith(fontWeight: FontWeight.bold),
               ),
               Text(toilet.name, textScaleFactor: 0.9)

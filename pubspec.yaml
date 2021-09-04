@@ -1,6 +1,6 @@
 name: dokart
 description: Dokart
-version: 1.6.0+13
+version: 1.6.1
 
 environment:
   sdk: '>=2.10.0 <3.0.0'

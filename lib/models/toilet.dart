@@ -4,6 +4,7 @@ import 'package:flutter/widgets.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 class Toilet {
+  final String id;
   final bool accessible;
   final String address;
   final bool babycare;
@@ -18,6 +19,7 @@ class Toilet {
   num distance;
 
   Toilet({
+    this.id,
     this.accessible,
     this.address,
     this.babycare,
@@ -60,6 +62,7 @@ class Toilet {
 
   factory Toilet.fromJson(String id, Map json) {
     return Toilet(
+      id: id,
       accessible: json['accessible'],
       address: json['address'],
       babycare: json['babycare'],
@@ -75,6 +78,6 @@ class Toilet {
 
   @override
   String toString() {
-    return 'Toilet{accessible: $accessible, address: $address, babycare: $babycare, commune: $commune, longitude: $longitude, latitude: $latitude, openingHours: $openingHours, pissoir: $pissoir, placement: $placement, price: $price, key: $key, distance: $distance}';
+    return 'Toilet{id: $id, accessible: $accessible, address: $address, babycare: $babycare, commune: $commune, longitude: $longitude, latitude: $latitude, openingHours: $openingHours, pissoir: $pissoir, placement: $placement, price: $price, key: $key, distance: $distance}';
   }
 }

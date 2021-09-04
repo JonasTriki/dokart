@@ -14,6 +14,8 @@ class OpeningHours {
     );
   }
 
+  bool get sameOpeningHours => weekday == saturday && saturday == sunday;
+
   OpeningHours({
     @required this.weekday,
     @required this.saturday,

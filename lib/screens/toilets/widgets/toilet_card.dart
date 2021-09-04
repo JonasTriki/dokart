@@ -2,6 +2,7 @@ import 'package:dokart/models/app_state.dart';
 import 'package:dokart/models/toilet.dart';
 import 'package:dokart/utils/maps.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 
@@ -76,6 +77,44 @@ Widget _bottom(BuildContext context, Toilet toilet) {
     additionalInfoItems.add(_infoItem(context, MdiIcons.baby, "Stellerom"));
   }
   TextStyle weekendStyle = TextStyle(color: Color(0xfff32121));
+  final List<Widget> openingHourItems = [];
+  if (toilet.openingHours.sameOpeningHours) {
+    if (toilet.openingHours.weekday.isAlwaysOpen) {
+      openingHourItems.add(Text(
+        "Døgnåpent\nalle dager",
+        textScaleFactor: 0.9,
+        textAlign: TextAlign.center,
+      ));
+    } else {
+      openingHourItems.addAll([
+        Text(
+          "Alle dager",
+          textScaleFactor: 0.9,
+        ),
+        Text(
+          toilet.openingHours.weekday.toString(),
+          textScaleFactor: 0.9,
+        ),
+      ]);
+    }
+  } else {
+    openingHourItems.addAll([
+      Text(
+        toilet.openingHours.weekday.toString(),
+        textScaleFactor: 0.9,
+      ),
+      Text(
+        toilet.openingHours.saturday.toString(),
+        textScaleFactor: 0.9,
+        style: weekendStyle,
+      ),
+      Text(
+        toilet.openingHours.sunday.toString(),
+        textScaleFactor: 0.9,
+        style: weekendStyle,
+      ),
+    ]);
+  }
   return Row(
     mainAxisAlignment: MainAxisAlignment.spaceAround,
     children: <Widget>[
@@ -92,22 +131,7 @@ Widget _bottom(BuildContext context, Toilet toilet) {
           ),
           Column(
             mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              Text(
-                toilet.openingHours.weekday.toString(),
-                textScaleFactor: 0.9,
-              ),
-              Text(
-                toilet.openingHours.saturday.toString(),
-                textScaleFactor: 0.9,
-                style: weekendStyle,
-              ),
-              Text(
-                toilet.openingHours.sunday.toString(),
-                textScaleFactor: 0.9,
-                style: weekendStyle,
-              ),
-            ],
+            children: openingHourItems,
           )
         ],
       ),

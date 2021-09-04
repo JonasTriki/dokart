@@ -11,6 +11,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
+import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:redux/redux.dart';
 
 class Toilets extends StatefulWidget {
@@ -19,54 +20,68 @@ class Toilets extends StatefulWidget {
 }
 
 class _ToiletsState extends State<Toilets> {
+  final ItemScrollController itemScrollController = ItemScrollController();
+  final Map<String, MarkerId> mapMarkerIds = <String, MarkerId>{};
   Completer<GoogleMapController> _mapController = Completer();
+  bool _toggleStickToLocation = false;
   BitmapDescriptor _toiletIcon;
-  bool _toggleStickToLocation;
 
   @override
   void initState() {
-    _toggleStickToLocation = false;
-    loadAssets();
     super.initState();
+    _loadAssets();
   }
 
-  loadAssets() {
-    BitmapDescriptor.fromAssetImage(
+  void _loadAssets() async {
+    _toiletIcon = await BitmapDescriptor.fromAssetImage(
       ImageConfiguration(),
       "assets/toilet.png",
-    ).then((value) => _toiletIcon = value);
+    );
   }
 
-  Future _moveToLocation(LatLng location) async {
+  void _setupMapMarkerIds(List<Toilet> toilets) async {
+    toilets.forEach((toilet) {
+      mapMarkerIds[toilet.id] = MarkerId(toilet.id);
+    });
+  }
+
+  void _moveToLocation(LatLng location, {String mapMarkerId}) async {
     final GoogleMapController controller = await _mapController.future;
     controller.animateCamera(CameraUpdate.newCameraPosition(
       CameraPosition(target: location, zoom: max(0, 16.0)),
     ));
+    if (mapMarkerId != null) {
+      controller.showMarkerInfoWindow(mapMarkerIds[mapMarkerId]);
+    }
   }
 
-  goToToilet(Toilet toilet) => _moveToLocation(toilet.getLatLng);
+  void goToToilet(Toilet toilet) =>
+      _moveToLocation(toilet.getLatLng, mapMarkerId: toilet.id);
+
+  void scrollToToilet(List<Toilet> toilets, Toilet toilet) => itemScrollController.scrollTo(
+        index: toilets.indexOf(toilet),
+        duration: Duration(seconds: 1),
+        curve: Curves.easeInOutCubic,
+        alignment: 0,
+      );
 
   List<Marker> _toiletMarkers(List<Toilet> toilets) => toilets
-      .asMap()
-      .map(
-        (i, toilet) => MapEntry(
-          i,
-          Marker(
-            markerId: MarkerId("toilet-" + i.toString()),
+      .map((toilet) => Marker(
+            markerId: mapMarkerIds[toilet.id],
             position: toilet.getLatLng,
             icon: _toiletIcon,
             infoWindow: InfoWindow(
-              title: toilet.name,
-              snippet: toilet.getDistance + " unna",
-            ),
+                title: toilet.name,
+                snippet: toilet.getDistance + " unna",
+                onTap: () {
+                  print("Tapped toilet " + toilet.name);
+                }),
             onTap: () {
-              _moveToLocation(toilet.getLatLng);
+              _moveToLocation(toilet.getLatLng, mapMarkerId: toilet.id);
+              scrollToToilet(toilets, toilet);
             },
-          ),
-        ),
-      )
-      .values
-      .toList();
+          ))
+      .toList(growable: false);
 
   Widget _drawMap(BuildContext context, AppState state) {
     if (state.location == null || _toiletIcon == null) {
@@ -86,13 +101,22 @@ class _ToiletsState extends State<Toilets> {
       );
     }
     return GoogleMap(
+      initialCameraPosition: CameraPosition(target: state.location, zoom: 16.0),
       onMapCreated: (GoogleMapController controller) {
-        _mapController.complete(controller);
+        if (!_mapController.isCompleted) {
+          _mapController.complete(controller);
+        } else {
+
+          // TODO: How to handle this on rotation?
+          _mapController = Completer();
+          _mapController.complete(controller);
+        }
       },
-      markers: Set.from(_toiletMarkers(state.toilets)),
+      markers: Set.from(_toiletMarkers(state.filteredToilets)),
       myLocationEnabled: true,
       myLocationButtonEnabled: false,
-      initialCameraPosition: CameraPosition(target: state.location, zoom: 16.0),
+      zoomControlsEnabled: false,
+      mapToolbarEnabled: false,
     );
   }
 
@@ -123,6 +147,16 @@ class _ToiletsState extends State<Toilets> {
         ),
       );
     }
+    return ScrollablePositionedList.builder(
+      itemCount: toilets.length,
+      itemBuilder: (_, idx) => Padding(
+        padding: const EdgeInsets.all(4.0),
+        child: toiletCard(context, toilets[idx], () async {
+          goToToilet(toilets[idx]);
+        }),
+      ),
+      itemScrollController: itemScrollController,
+    );
     return ListView(
       children: toilets
           .map((toilet) => Padding(
@@ -290,6 +324,8 @@ class _ToiletsState extends State<Toilets> {
           return orientation == Orientation.portrait
               ? Column(children: _content(store))
               : Row(children: _content(store));
+        }, onInit: (Store<AppState> store) {
+          _setupMapMarkerIds(store.state.filteredToilets);
         }, onDidChange: (_, Store<AppState> store) {
           if (_toggleStickToLocation) {
             _moveToLocation(store.state.location);

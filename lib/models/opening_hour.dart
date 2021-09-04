@@ -22,6 +22,23 @@ class OpeningHour {
 
   @override
   String toString() {
-    return from + " - " + to;
+    if (isClosed) {
+      return "Stengt";
+    } else if (isAlwaysOpen) {
+      return "Døgnåpent";
+    } else {
+      return from + " - " + to;
+    }
   }
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is OpeningHour &&
+          runtimeType == other.runtimeType &&
+          from == other.from &&
+          to == other.to;
+
+  @override
+  int get hashCode => from.hashCode ^ to.hashCode;
 }

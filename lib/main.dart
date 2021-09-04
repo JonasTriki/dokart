@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dokart/middleware.dart';
 import 'package:dokart/models/app_config.dart';
 import 'package:dokart/models/app_state.dart';

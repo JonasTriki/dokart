@@ -4,6 +4,9 @@
 # Google Services
 android/app/google-services.json
 
+# Google Maps Config Android
+**/**/api-keys.xml
+
 # Android stuff
 android/key.properties
 android/app/dokart-public.jks
